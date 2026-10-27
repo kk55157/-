@@ -1,0 +1,32 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap");
+
+/* Shared type system: editorial headings, readable body, and Latin display. */
+:root {
+  --serif: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+  --sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --display: Georgia, "Times New Roman", serif;
+}
+body { font-family: var(--sans); }
+h1, h2, h3, h4, h5, h6 { font-family: var(--serif); font-weight: 400; }
+.gallery-brand, .home-case-title h3 { font-family: var(--display); }
+.gallery-brand small, .gallery-nav, .work-dropdown, .home-section-label,
+.home-overline, .home-case-title > span, .home-case-title p,
+.home-service-list, .home-case-details > summary { font-family: var(--sans); }
+.home-lead, .home-solutions article p, .home-case-copy p,
+.case-process-panel .case-five-steps p, .home-process-steps p,
+.home-process-steps small, .home-case .case-closing-copy { font-family: var(--sans); }
+.case-process-panel .case-five-steps h5 { font-family: var(--serif); font-size: 16px; line-height: 1.5; }
+.case-process-panel .case-five-steps p { font-size: 15px; line-height: 1.7; }
+.home-case[aria-labelledby="case-Lumivelle"] .case-five-steps h5 { font-size: 15px; }
+.home-case[aria-labelledby="case-Lumivelle"] .case-five-steps p { font-size: 14px; }
+.case-step-number { font-family: var(--display); }
+
+/* Match the Quarkem case process typography to Lumivelle. */
+.home-case[aria-labelledby="case-Quarkem"] .case-step-number{font-size:18px}
+.home-case[aria-labelledby="case-Quarkem"] .case-five-steps h5{font-size:15px}
+.home-case[aria-labelledby="case-Quarkem"] .case-five-steps p{font-size:14px}
+
+/* The two case studies share the same typography. */
+.home-case .case-five-steps .case-step-number{font-size:18px}
+.home-case .case-five-steps h5{font-size:15px}
+.home-case .case-five-steps p{font-size:14px;line-height:1.7}
