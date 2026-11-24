@@ -212,3 +212,7 @@
 
 
 .series-title-label{display:block;margin-bottom:8px;color:var(--olive);font:12px/1.5 var(--sans);letter-spacing:.12em}
+
+/* Smaller campaign images while keeping their natural proportions. */
+@media(min-width:1025px){.detail-gallery.gallery--campaigns{columns:4}}
+@media(min-width:768px) and (max-width:1024px){.detail-gallery.gallery--campaigns{columns:3}}

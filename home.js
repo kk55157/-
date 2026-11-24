@@ -1,4 +1,10 @@
 (() => {
+  const backToTop=document.querySelector('.back-to-top');
+  if(backToTop){
+    const syncBackToTop=()=>{backToTop.hidden=window.scrollY<400;};
+    window.addEventListener('scroll',syncBackToTop,{passive:true});syncBackToTop();
+    backToTop.addEventListener('click',()=>window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'}));
+  }
   if(document.body.classList.contains('gallery-home')){
     document.addEventListener('click',event=>{
       const link=event.target.closest('a[href]');if(!link)return;
@@ -43,27 +49,66 @@
     let current = Math.max(0, slides.findIndex(slide => img.getAttribute('src') === slide.src));
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
     let transitioning = false;
+    let prepared = null;
+    function prepareSlide(index) {
+      if (prepared && prepared.index === index) return prepared.promise;
+      const slide = slides[index];
+      const next = new Image();
+      next.decoding = 'async';
+      const promise = new Promise((resolve, reject) => {
+        next.onload = () => {
+          if (next.decode) next.decode().catch(() => {}).then(() => resolve(next));
+          else resolve(next);
+        };
+        next.onerror = reject;
+        next.src = slide.src;
+        if (next.complete && next.naturalWidth) {
+          if (next.decode) next.decode().catch(() => {}).then(() => resolve(next));
+          else resolve(next);
+        }
+      });
+      prepared = {index, promise};
+      promise.catch(() => {});
+      return promise;
+    }
+    function prepareNext() {
+      prepareSlide((current + 1) % slides.length);
+    }
+    prepareNext();
     async function showSlide(delta) {
       if (transitioning) return;
       transitioning = true;
-      if (!reducedMotion.matches && img.animate) {
-        await img.animate([{transform:'translateX(0)',opacity:1},{transform:'translateX('+(-Math.sign(delta)*100)+'%)',opacity:0}],{duration:160,easing:'ease-in'}).finished.catch(()=>{});
-      }
-      current = (current + delta + slides.length) % slides.length;
-      const slide = slides[current];
-      img.width=slide.w; img.height=slide.h; img.alt=slide.alt; img.src=slide.src;
-
-      status.textContent=(current+1)+' / '+slides.length;
-      if (!reducedMotion.matches && img.animate) {
-        await img.animate([{transform:'translateX('+(Math.sign(delta)*100)+'%)',opacity:0},{transform:'translateX(0)',opacity:1}],{duration:240,easing:'ease-out'}).finished.catch(()=>{});
-      }
-      transitioning = false;
+      const target = (current + delta + slides.length) % slides.length;
+      const slide = slides[target];
       try {
-        const saved=JSON.parse(localStorage.getItem('fashion-gallery-landscape')||'[]');
-        const previous=Array.isArray(saved)?saved:[];
-        previous[0]=slide.src;
-        localStorage.setItem('fashion-gallery-landscape',JSON.stringify(previous));
-      } catch (_) {}
+        await prepareSlide(target);
+        const figure = img.parentElement;
+        const overlay = img.cloneNode(false);
+        overlay.removeAttribute('id');
+        overlay.setAttribute('aria-hidden', 'true');
+        overlay.alt = '';
+        overlay.classList.add('carousel-outgoing');
+        if (!reducedMotion.matches && img.animate) figure.appendChild(overlay);
+        img.width = slide.w; img.height = slide.h; img.alt = slide.alt; img.src = slide.src;
+        current = target;
+        status.textContent = (current + 1) + ' / ' + slides.length;
+        if (overlay.isConnected) {
+          await overlay.animate([{opacity:1},{opacity:0}], {duration:550,easing:'ease-in-out'}).finished.catch(() => {});
+          overlay.remove();
+        }
+        try {
+          const saved=JSON.parse(localStorage.getItem('fashion-gallery-landscape')||'[]');
+          const previous=Array.isArray(saved)?saved:[];
+          previous[0]=slide.src;
+          localStorage.setItem('fashion-gallery-landscape',JSON.stringify(previous));
+        } catch (_) {}
+      } catch (_) {
+        // Keep the current image visible if the next one cannot load.
+      } finally {
+        transitioning = false;
+        prepared = null;
+        prepareNext();
+      }
     }
     document.getElementById('carousel-prev')?.addEventListener('click',()=>showSlide(-1));
     document.getElementById('carousel-next')?.addEventListener('click',()=>showSlide(1));
